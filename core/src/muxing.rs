@@ -51,7 +51,7 @@
 //! The upgrade process will take ownership of the connection, which makes it possible for the
 //! implementation of `StreamMuxer` to control everything that happens on the wire.
 
-use futures::{AsyncRead, AsyncWrite, task::Context, task::Poll};
+use futures::{task::Context, task::Poll, AsyncRead, AsyncWrite};
 use multiaddr::Multiaddr;
 use std::io;
 
