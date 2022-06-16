@@ -203,7 +203,7 @@ where
 {
     type Substream = EitherOutput<A::Substream, B::Substream>;
     type OutboundSubstream = EitherOutbound<A, B>;
-    type Error = io::Error;
+    type Error = EitherError<A::Error, B::Error>;
 
     fn poll_event(
         &self,
@@ -211,7 +211,7 @@ where
     ) -> Poll<Result<StreamMuxerEvent<Self::Substream>, Self::Error>> {
         match self {
             EitherOutput::First(inner) => inner.poll_event(cx).map(|result| {
-                result.map_err(|e| e.into()).map(|event| match event {
+                result.map_err(EitherError::A).map(|event| match event {
                     StreamMuxerEvent::AddressChange(addr) => StreamMuxerEvent::AddressChange(addr),
                     StreamMuxerEvent::InboundSubstream(substream) => {
                         StreamMuxerEvent::InboundSubstream(EitherOutput::First(substream))
@@ -219,7 +219,7 @@ where
                 })
             }),
             EitherOutput::Second(inner) => inner.poll_event(cx).map(|result| {
-                result.map_err(|e| e.into()).map(|event| match event {
+                result.map_err(EitherError::B).map(|event| match event {
                     StreamMuxerEvent::AddressChange(addr) => StreamMuxerEvent::AddressChange(addr),
                     StreamMuxerEvent::InboundSubstream(substream) => {
                         StreamMuxerEvent::InboundSubstream(EitherOutput::Second(substream))
@@ -245,11 +245,11 @@ where
             (EitherOutput::First(ref inner), EitherOutbound::A(ref mut substream)) => inner
                 .poll_outbound(cx, substream)
                 .map(|p| p.map(EitherOutput::First))
-                .map_err(|e| e.into()),
+                .map_err(EitherError::A),
             (EitherOutput::Second(ref inner), EitherOutbound::B(ref mut substream)) => inner
                 .poll_outbound(cx, substream)
                 .map(|p| p.map(EitherOutput::Second))
-                .map_err(|e| e.into()),
+                .map_err(EitherError::B),
             _ => panic!("Wrong API usage"),
         }
     }
@@ -269,8 +269,8 @@ where
 
     fn poll_close(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         match self {
-            EitherOutput::First(inner) => inner.poll_close(cx).map_err(|e| e.into()),
-            EitherOutput::Second(inner) => inner.poll_close(cx).map_err(|e| e.into()),
+            EitherOutput::First(inner) => inner.poll_close(cx).map_err(EitherError::A),
+            EitherOutput::Second(inner) => inner.poll_close(cx).map_err(EitherError::B),
         }
     }
 }

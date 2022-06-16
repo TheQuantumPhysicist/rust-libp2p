@@ -2,8 +2,10 @@
 
 - Remove `{read,write,flush,shutdown,destroy}_substream` functions from `StreamMuxer` trait
   in favor of forcing `StreamMuxer::Substream` to implement `AsyncRead + AsyncWrite`. See [PR 2707].
+- Remove `Into<std::io::Error>` bound from `StreamMuxer::Error`. See [PR XXXX].
 
 [PR 2707]: https://github.com/libp2p/rust-libp2p/pull/2707
+[PR XXXX]: https://github.com/libp2p/rust-libp2p/pull/XXXX
 
 # 0.33.0
 

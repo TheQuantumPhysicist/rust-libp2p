@@ -302,6 +302,7 @@ impl<T> Multiplexed<T> {
         M: StreamMuxer + Send + Sync + 'static,
         M::Substream: AsyncRead + AsyncWrite + Send + Unpin + 'static,
         M::OutboundSubstream: Send + 'static,
+        M::Error: Into<Box<dyn Error + Send + Sync>>,
     {
         boxed(self.map(|(i, m), _| (i, StreamMuxerBox::new(m))))
     }
